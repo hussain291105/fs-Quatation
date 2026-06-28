@@ -23,13 +23,75 @@ const initialItems: Item[] = [
 
 const fmt = (n: number) => '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+const formatDate = (dateStr: string) => {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+const formatDateString = (value: string) => {
+  // Remove all non-numeric characters
+  const numbers = value.replace(/\D/g, '');
+  
+  // Limit to 8 digits (ddmmyyyy)
+  const limited = numbers.slice(0, 8);
+  
+  // Extract day, month, year
+  let day = limited.slice(0, 2);
+  let month = limited.slice(2, 4);
+  let year = limited.slice(4, 8);
+  
+  // Validate day (max 31)
+  if (day.length === 2 && parseInt(day) > 31) {
+    day = '31';
+  }
+  
+  // Pad single digit month with leading zero only when month is complete
+  if (month.length === 2 && month.startsWith('0') === false && parseInt(month) < 10) {
+    month = '0' + month;
+  }
+  
+  // Validate month (max 12)
+  if (month.length === 2 && parseInt(month) > 12) {
+    month = '12';
+  }
+  
+  // Format as dd/mm/yyyy
+  let formatted = '';
+  if (day.length > 0) {
+    formatted += day;
+  }
+  if (month.length > 0) {
+    formatted += '/' + month;
+  }
+  if (year.length > 0) {
+    formatted += '/' + year;
+  }
+  
+  return formatted;
+};
+
+const formatReadableDate = (dateStr: string) => {
+  // Parse dd/mm/yyyy format
+  const parts = dateStr.split('/');
+  if (parts.length === 3) {
+    const day = parseInt(parts[0]);
+    const month = parseInt(parts[1]);
+    const year = parseInt(parts[2]);
+    
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+  return dateStr;
+};
+
 export default function Quotation() {
   const [items, setItems] = useState<Item[]>(initialItems);
-  const [quotationDate, setQuotationDate] = useState('May 31, 2026');
-  const [validTillDate, setValidTillDate] = useState('Jun 15, 2026');
+  const [quotationDate, setQuotationDate] = useState('31/05/2026');
+  const [validTillDate, setValidTillDate] = useState('15/06/2026');
   const [countryOfSupply, setCountryOfSupply] = useState('India');
   const [placeOfSupply, setPlaceOfSupply] = useState('Other Territory (97)');
   const [gstStructure, setGstStructure] = useState('GST Structure: CGST 9% + SGST 9% = 18%');
+  const [customerFields, setCustomerFields] = useState(['Hatimi Retreats', 'India']);
 
   const recalcRow = (id: number, field: 'qty' | 'rate', value: number) => {
     setItems(items.map(item => 
@@ -39,6 +101,21 @@ export default function Quotation() {
 
   const deleteRow = (id: number) => {
     setItems(items.filter(item => item.id !== id));
+  };
+
+  const handleCustomerFieldChange = (index: number, value: string) => {
+    const newFields = [...customerFields];
+    newFields[index] = value;
+    setCustomerFields(newFields);
+  };
+
+  const handleCustomerKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const newFields = [...customerFields];
+      newFields.splice(index + 1, 0, '');
+      setCustomerFields(newFields);
+    }
   };
 
   const addRow = () => {
@@ -82,8 +159,7 @@ export default function Quotation() {
             <div className={styles.underline}></div>
           </div>
           <div className={styles.headerRight}>
-            <h2 contentEditable suppressContentEditableWarning className={styles.editable}>FS ENTERPRISES</h2>
-            <p contentEditable suppressContentEditableWarning className={styles.editable}>Quality Tissues, Trusted Service</p>
+            <img src="/logo.png" alt="FS Enterprises Logo" className={styles.logo} />
           </div>
         </div>
 
@@ -101,8 +177,19 @@ export default function Quotation() {
             <div className={styles.bar}>CUSTOMER DETAILS</div>
             <div className={`${styles.content} ${styles.editable}`} contentEditable suppressContentEditableWarning>
               <div className={styles.quoteFor}>QUOTATION FOR</div>
-              Hatimi Retreats<br />
-              India
+              <div className={styles.customerFields}>
+                {customerFields.map((field, index) => (
+                  <input
+                    key={index}
+                    type="text"
+                    className={styles.customerInput}
+                    value={field}
+                    onChange={(e) => handleCustomerFieldChange(index, e.target.value)}
+                    onKeyDown={(e) => handleCustomerKeyDown(index, e)}
+                    placeholder={index === 0 ? 'Customer Name' : index === 1 ? 'Country' : ''}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -112,11 +199,25 @@ export default function Quotation() {
           <div className={styles.summaryGrid}>
             <div className={styles.item}>
               <div className={styles.label}>Quotation Date</div>
-              <div className={`${styles.value} ${styles.editable}`} contentEditable suppressContentEditableWarning>{quotationDate}</div>
+              <input
+                type="text"
+                className={`${styles.dateInput} ${styles.value}`}
+                value={quotationDate}
+                onChange={(e) => setQuotationDate(formatDateString(e.target.value))}
+                placeholder="dd/mm/yyyy"
+                maxLength={10}
+              />
             </div>
             <div className={styles.item}>
               <div className={styles.label}>Valid Till Date</div>
-              <div className={`${styles.value} ${styles.editable}`} contentEditable suppressContentEditableWarning>{validTillDate}</div>
+              <input
+                type="text"
+                className={`${styles.dateInput} ${styles.value}`}
+                value={validTillDate}
+                onChange={(e) => setValidTillDate(formatDateString(e.target.value))}
+                placeholder="dd/mm/yyyy"
+                maxLength={10}
+              />
             </div>
             <div className={styles.item}>
               <div className={styles.label}>Country Of Supply</div>
@@ -220,23 +321,36 @@ export default function Quotation() {
             <div className={styles.underline}></div>
           </div>
           <div className={styles.headerRight}>
-            <h2 contentEditable suppressContentEditableWarning className={styles.editable}>FS ENTERPRISES</h2>
-            <p contentEditable suppressContentEditableWarning className={styles.editable}>Quality Tissues, Trusted Service</p>
+            <img src="/logo.png" alt="FS Enterprises Logo" className={styles.logo} />
           </div>
         </div>
 
         <div className={styles.infoStrip}>
           <div className={styles.cell}>
             <div className={styles.label}>Quotation Date</div>
-            <div className={`${styles.value} ${styles.editable}`} contentEditable suppressContentEditableWarning>{quotationDate}</div>
+            <input
+              type="text"
+              className={`${styles.dateInput} ${styles.value}`}
+              value={quotationDate}
+              onChange={(e) => setQuotationDate(formatDateString(e.target.value))}
+              placeholder="dd/mm/yyyy"
+              maxLength={10}
+            />
           </div>
           <div className={styles.cell}>
             <div className={styles.label}>Quotation For</div>
-            <div className={`${styles.value} ${styles.editable}`} contentEditable suppressContentEditableWarning>Hatimi Retreats</div>
+            <div className={`${styles.value} ${styles.editable}`} contentEditable suppressContentEditableWarning>{customerFields[0]}</div>
           </div>
           <div className={styles.cell}>
             <div className={styles.label}>Valid Till Date</div>
-            <div className={`${styles.value} ${styles.editable}`} contentEditable suppressContentEditableWarning>{validTillDate}</div>
+            <input
+              type="text"
+              className={`${styles.dateInput} ${styles.value}`}
+              value={validTillDate}
+              onChange={(e) => setValidTillDate(formatDateString(e.target.value))}
+              placeholder="dd/mm/yyyy"
+              maxLength={10}
+            />
           </div>
           <div className={styles.cell}>
             <div className={styles.label}>Page</div>
@@ -261,7 +375,7 @@ export default function Quotation() {
           </div>
           <div className={styles.noteRow}>
             <div className={styles.noteTitle}>Quotation Valid Till Date</div>
-            Jun 15, 2026.
+            {formatReadableDate(validTillDate)}.
           </div>
           <div className={styles.noteRow}>
             <div className={styles.noteTitle}>Country Of Supply</div>
@@ -273,7 +387,7 @@ export default function Quotation() {
           </div>
           <div className={styles.noteRow}>
             <div className={styles.noteTitle}>One Time Setup Charge</div>
-            The line item "Sterio" is noted as a one time setup charge.
+            The line item "Stereo" is noted as a one time setup charge.
           </div>
           <div className={styles.noteRow}>
             <div className={styles.noteTitle}>Pending Confirmation Before Order</div>

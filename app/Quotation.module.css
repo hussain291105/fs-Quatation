@@ -63,6 +63,14 @@
   padding-right: 5px;
 }
 
+.headerRight .logo {
+  max-width: 250px;
+  height: auto;
+  margin-bottom: 8px;
+  display: block;
+  margin-left: auto;
+}
+
 .headerRight h2 {
   color: var(--blue);
   margin: 0;
@@ -141,6 +149,12 @@
   margin-bottom: 6px;
 }
 
+.customerFields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 /* Quotation summary box */
 .summaryBox {
   border: 1px solid var(--bordergray);
@@ -169,14 +183,15 @@
 }
 
 .gstPill {
-  margin: 10px 18px 18px 18px;
+  margin: 10px 50px 18px 50px;
   background: var(--lightblue);
   border: 1px solid var(--bordergray);
   color: var(--blue);
   font-weight: 700;
   font-size: 13px;
   padding: 8px 14px;
-  display: inline-block;
+  display: block;
+  text-align: center;
 }
 
 /* Items table */
@@ -425,7 +440,8 @@
 }
 
 .qtyInput,
-.rateInput {
+.rateInput,
+.dateInput {
   width: 55px;
   text-align: center;
   border: 1px solid transparent;
@@ -441,14 +457,43 @@
   width: 70px;
 }
 
+.dateInput {
+  width: 130px;
+}
+
+.customerInput {
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 14px;
+  font-family: inherit;
+  color: #222;
+  border-radius: 3px;
+  padding: 2px 4px;
+  width: 100%;
+  max-width: 250px;
+}
+
+.customerInput:hover {
+  background: #fffbe6;
+  box-shadow: 0 0 0 1px #f0d878;
+}
+
+.customerInput:focus {
+  background: #fffce0;
+  box-shadow: 0 0 0 2px #e0b400;
+  outline: none;
+}
+
 .qtyInput:hover,
-.rateInput:hover {
+.rateInput:hover,
+.dateInput:hover {
   background: #fffbe6;
   box-shadow: 0 0 0 1px #f0d878;
 }
 
 .qtyInput:focus,
-.rateInput:focus {
+.rateInput:focus,
+.dateInput:focus {
   background: #fffce0;
   box-shadow: 0 0 0 2px #e0b400;
   outline: none;
